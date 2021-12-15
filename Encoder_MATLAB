@@ -1,0 +1,78 @@
+load('H_12_M_128.mat')%change H here
+H = zeros(Nrow,Ncol);
+for i = 1:length(inx_col)
+    H(inx_row(i),inx_col(i)) = 1;    
+end 
+[M,N] = size(H)
+BB = N-M;
+Do_A =[];
+Do_B =[];
+Q = [];
+a = 0;
+for i = 1:M
+    if H(i,i) ~= 1
+        for j = i+1:M
+            if H(j,i) == 1
+                temp = H(j,:);
+                H(j,:) = H(i,:);
+                H(i,:) = temp;
+            end
+        end
+    end
+   
+ for j = i+1:M
+     if H(j,i) == 1
+         H(j,:) = xor(H(j,:),H(i,:));
+     end
+ end
+ if H(i,i) ~= 1
+    a = i+1;
+    while H(i,a) ~= 1
+    a = a+1;
+    end
+    temp1 = H(:,i);
+    H(:,i) = H(:,a);
+    H(:,a) = temp1;
+    b = 1
+ else
+    b = 0
+ end
+ Do_A=[Do_A,a];
+ Do_B=[Do_B,b];
+ 
+   for j = i+1:M
+     if H(j,i) == 1
+         H(j,:) = xor(H(j,:),H(i,:));
+     end
+ end
+end
+
+for i = M-1:-1:1
+    for j = i+1:M
+        if H(i,j) ==1
+            H(i,:) = xor(H(j,:),H(i,:));
+        end
+    end
+end
+
+
+PT = H(1:M , M+1 : N);
+P = PT.' ;
+[r,c] = size(P);
+I = eye(r);
+G = [P I];
+[row_inx col_inx] = find(G==1)
+[ri ci] = size(row_inx);
+
+load('U128.mat')%change u here
+
+q = u*G;
+cw = mod(q,2)
+for i = M:-1:1
+
+        if Do_B(i) == 1
+            temp3 = cw(i);
+            cw(i) = cw(Do_A(i));
+            cw(Do_A(i)) = temp3;
+        end 
+end
